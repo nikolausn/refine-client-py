@@ -94,6 +94,7 @@ class RefineServer(object):
             urllib.addbase.__init__(response, gzip_fp)
         return response
 
+
     def urlopen_json(self, *args, **kwargs):
         """Open a Refine URL, optionally POST data, and return parsed JSON."""
         response = json.loads(self.urlopen(*args, **kwargs).read())
@@ -102,6 +103,7 @@ class RefineServer(object):
                              response.get('message', response.get('stack', response)))
             raise Exception(error_message)
         return response
+
 
     def get_version(self):
         """Return version data.
@@ -356,6 +358,42 @@ class RefineProject:
         self.get_models()
         # following filled in by get_reconciliation_services
         self.recon_services = None
+
+
+    """
+    Add Capabilities for Undo Redo using OpenRefine clien
+    Author: Parulian, Nikolaus
+    """
+    def list_history(self):
+        """
+        :return:
+        """
+
+        return self.server.urlopen_json("get-history", project_id=self.project_id)
+
+    def undo_project(self,history_id):
+        """
+
+        :param history_id:
+        :return:
+        """
+
+        json_response = self.server.urlopen_json("undo-redo",project_id=self.project_id,params={"lastDoneID":history_id},data={"engine": self.engine.as_json()})
+        if json_response["code"] != "pending":
+            # history ID not found or error
+            return False
+        # check if history move
+        history_list = self.server.urlopen_json("get-history", project_id=self.project_id)
+        past_operations = history_list["past"]
+        if past_operations[-1]["id"] == history_id:
+            # check if the history change
+            return True
+        return False
+
+    """
+    End Feature
+    """
+
 
     def project_name(self):
         return Refine(self.server).get_project_name(self.project_id)
