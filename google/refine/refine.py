@@ -397,14 +397,45 @@ class RefineProject:
         :return:
         """
         import json
-        if json_data["op"].startswith("custom"):
-            pass
+        if json_data["op"].startswith("custom/"):
+            # single cell edit
+            if json_data["op"] == "custom/single-edit":
+                single_cell = {
+                    "row": json_data["row"],
+                    "cell": json_data["cell"],
+                    "value": json_data["new"],
+                    "type": "text",
+                    #"engine": json.dumps({"facets": [], "mode": "row-based"})
+                    "engine": self.engine.as_json()
+                }
+
+                response_json = self.server.urlopen_json("edit-one-cell", project_id=self.project_id,
+                                                     data=single_cell)
+                #print(response_json)
+            elif json_data["op"] == "custom/flag":
+                #response_json = self.annotate_one_row(json_data["row"],"flagged",json_data["newFlagged"])
+
+                response_json = self.server.urlopen_json("annotate-one-row", project_id=self.project_id,
+                                                         params={"starred": json_data["newFlagged"],
+                                                                 "row": json_data["row"]},
+                                                         data={"engine": self.engine.as_json()})
+                #print(response_json)
+            elif json_data["op"] == "custom/star":
+                #response_json = self.annotate_one_row(json_data["row"], "starred", json_data["newStarred"])
+                response_json = self.server.urlopen_json("annotate-one-row", project_id=self.project_id,
+                                                         params={"starred": json_data["newStarred"],"row":json_data["row"]},
+                                                         data={"engine": self.engine.as_json()})
+                #print(response_json)
+            else:
+                raise NotImplementedError("operation",json_data["op"],"is not implemented yet, tell admin about this.")
+            #pass
         else:
             response_json = self.do_json('apply-operations', {'operations': json.dumps([json_data])})
         if response_json['code'] == 'pending' and wait:
             self.wait_until_idle()
-            return 'ok'
-        return response_json['code']  # can be 'ok' or 'pending'
+            #return 'ok'
+        #return response_json['code']  # can be 'ok' or 'pending'
+        return response_json
 
     """
     End Feature
@@ -432,6 +463,7 @@ class RefineProject:
         response = self.server.urlopen_json(command,
                                             project_id=self.project_id,
                                             data=data)
+        #print(response)
         if 'historyEntry' in response:
             # **response['historyEntry'] won't work as keys are unicode :-/
             he = response['historyEntry']
