@@ -390,6 +390,22 @@ class RefineProject:
             return True
         return False
 
+    def execute_json_op(self, json_data, wait=True):
+        """
+        Execute single json operation history by sequential order
+        :param json_data:
+        :return:
+        """
+        import json
+        if json_data["op"].startswith("custom"):
+            pass
+        else:
+            response_json = self.do_json('apply-operations', {'operations': json.dumps([json_data])})
+        if response_json['code'] == 'pending' and wait:
+            self.wait_until_idle()
+            return 'ok'
+        return response_json['code']  # can be 'ok' or 'pending'
+
     """
     End Feature
     """
