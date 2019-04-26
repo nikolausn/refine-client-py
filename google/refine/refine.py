@@ -416,7 +416,7 @@ class RefineProject:
                 #response_json = self.annotate_one_row(json_data["row"],"flagged",json_data["newFlagged"])
 
                 response_json = self.server.urlopen_json("annotate-one-row", project_id=self.project_id,
-                                                         params={"starred": json_data["newFlagged"],
+                                                         params={"flagged": json_data["newFlagged"],
                                                                  "row": json_data["row"]},
                                                          data={"engine": self.engine.as_json()})
                 #print(response_json)
