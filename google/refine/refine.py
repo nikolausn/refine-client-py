@@ -403,7 +403,7 @@ class RefineProject:
                 single_cell = {
                     "row": json_data["row"],
                     "cell": json_data["cell"],
-                    "value": json_data["new"],
+                    "value": json.loads(json_data["new"])["v"],
                     "type": "text",
                     #"engine": json.dumps({"facets": [], "mode": "row-based"})
                     "engine": self.engine.as_json()
